@@ -301,7 +301,9 @@ function buildCake() {
 
   // 촛불을 다 끄면 아래 문구가 "🎉 축하합니다! 🎉" 로 바뀌면서
   // "우리 ○○이의 27살 생일을 / 축하합니다" 로 이어집니다.
-  $("#candleLegend").textContent = `우리 ${withSubjectSuffix(CONFIG.toName)} ${n}살 생일을 🎂`;
+  const legend = $("#candleLegend");
+  legend.textContent = `우리 ${withSubjectSuffix(CONFIG.toName)} ${n}살 생일을 🎂`;
+  legend.hidden = true; // 촛불을 다 끄면 "축하합니다" 와 함께 나타납니다
 }
 
 /* 이름 뒤에 "이의" 를 붙일지 "의" 만 붙일지 정합니다.
@@ -340,7 +342,12 @@ function checkAllOut() {
   celebrated = true;
   setTimeout(() => {
     $("#wishMsg").hidden = false;
-    $("#cakeHint").textContent = "🎉 축하합니다! 🎉";
+    const legend = $("#candleLegend");
+    legend.hidden = false;
+    legend.classList.add("reveal");
+    const hint = $("#cakeHint");
+    hint.textContent = "🎉 축하합니다! 🎉";
+    hint.classList.add("reveal");
     $("#relightBtn").hidden = false;
     confettiRain(70);
     burstHearts(window.innerWidth / 2, window.innerHeight / 2, 26);
@@ -354,7 +361,12 @@ function relight() {
   setLights();
   $("#wishMsg").hidden = true;
   $("#relightBtn").hidden = true;
-  $("#cakeHint").textContent = "촛불을 손가락으로 톡톡 두드려서 꺼보세요!";
+  const legend = $("#candleLegend");
+  legend.hidden = true;
+  legend.classList.remove("reveal");
+  const hint = $("#cakeHint");
+  hint.textContent = "촛불을 손가락으로 톡톡 두드려서 꺼보세요!";
+  hint.classList.remove("reveal");
   const btn = $("#micBtn");
   btn.disabled = false;
   btn.textContent = "🎤 후~ 불어서 끄기";
