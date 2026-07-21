@@ -439,6 +439,32 @@ body {
   color: #a3005c;
   font-weight: bold;
 }
+/* 마이크 입력 레벨 미터 */
+.mic-meter { margin: 14px 0 4px; }
+.mic-track {
+  position: relative;
+  height: 22px;
+  background: #000;
+  border: 3px inset #888;
+  overflow: hidden;
+}
+.mic-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #00ff6a, #ffe600);
+  transition: width .06s linear;
+}
+.mic-bar.over { background: linear-gradient(90deg, #ff8c00, #ff1744); }
+.mic-mark {
+  position: absolute;
+  top: -2px; bottom: -2px;
+  left: 50%;
+  width: 3px;
+  background: #ff1744;
+  box-shadow: 0 0 6px #ff1744;
+}
+.mic-help { margin: 6px 0 0; font-size: .72rem; color: #a3005c; }
+
 .wish {
   margin-top: 16px;
   padding: 14px;

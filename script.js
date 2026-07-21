@@ -337,10 +337,15 @@ function relight() {
   $("#wishMsg").hidden = true;
   $("#relightBtn").hidden = true;
   $("#cakeHint").textContent = "촛불을 손가락으로 톡톡 두드려서 꺼보세요!";
+  const btn = $("#micBtn");
+  btn.disabled = false;
+  btn.textContent = "🎤 후~ 불어서 끄기";
 }
 
 /* ───────── 마이크로 후~ 불기 ───────── */
 let micStream = null;
+let micSource = null;
+let bgmWasOn = false;
 async function startMic() {
   const btn = $("#micBtn");
   if (micStream) return;
@@ -351,39 +356,105 @@ async function startMic() {
   btn.disabled = true;
   btn.textContent = "🎤 마이크 여는 중...";
   try {
-    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // noiseSuppression 은 "숨소리·바람소리"를 지우도록 만들어진 기능이라
+    // 켜져 있으면 후~ 부는 소리가 통째로 걸러집니다. 반드시 꺼야 합니다.
+    // autoGainControl 도 끄지 않으면 볼륨이 자동 보정돼서 세기 판단이 흔들립니다.
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        noiseSuppression: false,
+        echoCancellation: false,
+        autoGainControl: false,
+      },
+    });
   } catch (err) {
     btn.disabled = false;
     btn.textContent = "🎤 후~ 불어서 끄기";
-    $("#cakeHint").textContent = "마이크를 못 켰어요 😢 촛불을 손가락으로 눌러주세요!";
+    $("#cakeHint").textContent =
+      err && err.name === "NotAllowedError"
+        ? "마이크 권한이 거부됐어요 😢 촛불을 손가락으로 눌러주세요!"
+        : "마이크를 못 켰어요 😢 촛불을 손가락으로 눌러주세요!";
     return;
   }
-  btn.textContent = "🎤 후~ 하고 불어보세요!";
-  $("#cakeHint").textContent = "자, 크게 후~ 하고 불어주세요!";
 
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  const src = ctx.createMediaStreamSource(micStream);
+  // BGM 을 스피커로 내보내면서 동시에 마이크로 들으면
+  // (1) 기기가 통화용 오디오 경로로 바뀌면서 소리가 갑자기 커지고
+  // (2) BGM 이 그대로 마이크에 잡혀서 후~ 부는 소리와 구분이 안 됩니다.
+  // 그래서 듣는 동안에는 BGM 을 끄고, 끝나면 원래대로 되돌립니다.
+  bgmWasOn = bgmPlaying;
+  if (bgmPlaying) stopBgm();
+
+  // AudioContext 를 새로 만들지 않고 BGM 이 쓰던 것을 재사용합니다 (두 개가 겹치면 출력이 커짐)
+  const ctx = (audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)());
+  await ctx.resume(); // iOS 사파리는 resume 안 하면 조용히 멈춰 있습니다
+  const src = (micSource = ctx.createMediaStreamSource(micStream));
   const analyser = ctx.createAnalyser();
-  analyser.fftSize = 512;
+  analyser.fftSize = 1024;
+  analyser.smoothingTimeConstant = 0.1;
   src.connect(analyser);
-  const data = new Uint8Array(analyser.frequencyBinCount);
 
+  const time = new Uint8Array(analyser.fftSize);
+  const freq = new Uint8Array(analyser.frequencyBinCount);
+  // 후 부는 소리는 대부분 저주파(~20-500Hz) 쪽에 몰립니다
+  const lowBins = Math.max(4, Math.round(500 / (ctx.sampleRate / analyser.fftSize)));
+
+  const meter = $("#micMeter");
+  meter.hidden = false;
+  const bar = $("#micBar");
+  const mark = $("#micMark");
+
+  // 1) 먼저 1초간 주변 소음을 재서 기준선을 잡습니다
+  btn.textContent = "🎤 조용히... 소음 측정 중";
+  $("#cakeHint").textContent = "잠깐만요, 주변 소리를 재고 있어요...";
+
+  let phase = "calibrate";
+  let ambient = 0;
+  let threshold = 1;
   let loud = 0;
-  const loop = () => {
-    if (!micStream) return;
-    analyser.getByteTimeDomainData(data);
+  const startedAt = performance.now();
+
+  const read = () => {
+    analyser.getByteTimeDomainData(time);
     let sum = 0;
-    for (let i = 0; i < data.length; i++) {
-      const v = (data[i] - 128) / 128;
+    for (let i = 0; i < time.length; i++) {
+      const v = (time[i] - 128) / 128;
       sum += v * v;
     }
-    const rms = Math.sqrt(sum / data.length);
-    loud = rms > 0.16 ? loud + 1 : 0;
-    if (loud > 6) {
-      blowAll();
-      stopMic();
-      btn.textContent = "🎤 잘 불었어요!";
-      return;
+    const rms = Math.sqrt(sum / time.length);
+
+    analyser.getByteFrequencyData(freq);
+    let low = 0;
+    for (let i = 0; i < lowBins; i++) low += freq[i];
+    low = low / lowBins / 255;
+
+    // 저주파 성분에 가중치를 줘서 "부는 소리"를 말소리보다 잘 잡게 합니다
+    return rms * 0.5 + low * 0.5;
+  };
+
+  const loop = () => {
+    if (!micStream) return;
+    const level = read();
+
+    if (phase === "calibrate") {
+      ambient = Math.max(ambient, level);
+      if (performance.now() - startedAt > 1000) {
+        // 주변 소음의 2.5배, 최소 0.06 — 조용한 방에서도 시끄러운 방에서도 동작
+        threshold = Math.max(ambient * 2.5, 0.06);
+        phase = "listen";
+        btn.textContent = "🎤 후~ 하고 불어보세요!";
+        $("#cakeHint").textContent = "자, 마이크에 대고 크게 후~ 불어주세요!";
+        mark.style.left = Math.min(96, threshold * 100) + "%";
+      }
+    } else {
+      bar.style.width = Math.min(100, level * 100) + "%";
+      bar.classList.toggle("over", level > threshold);
+      loud = level > threshold ? loud + 1 : 0;
+      if (loud >= 4) {
+        blowAll();
+        stopMic();
+        btn.textContent = "🎤 잘 불었어요!";
+        btn.disabled = true;
+        return;
+      }
     }
     requestAnimationFrame(loop);
   };
@@ -394,6 +465,18 @@ function stopMic() {
   if (!micStream) return;
   micStream.getTracks().forEach((t) => t.stop());
   micStream = null;
+  // 노드를 끊어주지 않으면 마이크 입력이 그래프에 남아 있습니다
+  if (micSource) {
+    micSource.disconnect();
+    micSource = null;
+  }
+  const meter = $("#micMeter");
+  if (meter) meter.hidden = true;
+  // 마이크 때문에 껐던 BGM 을 되돌립니다
+  if (bgmWasOn) {
+    bgmWasOn = false;
+    startBgm();
+  }
 }
 
 /* ───────── 편지 타자기 ───────── */
