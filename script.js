@@ -301,10 +301,18 @@ function buildCake() {
     candles.push(c);
   }
 
+  setLights();
+
   const parts = [];
   if (longs) parts.push(`긴 초 ${longs}개(${longs * 10}살)`);
   if (shorts) parts.push(`짧은 초 ${shorts}개(${shorts}살)`);
   $("#candleLegend").textContent = parts.join(" + ") + ` = ${n}살 🎂`;
+}
+
+/* 촛불이 하나라도 살아있으면 방 불을 끕니다 */
+function setLights() {
+  const anyLit = candles.some((c) => !c.classList.contains("out"));
+  $("#cakeSection").classList.toggle("lights-off", anyLit);
 }
 
 function blowOut(candle) {
@@ -312,6 +320,7 @@ function blowOut(candle) {
   candle.classList.add("out");
   const r = candle.getBoundingClientRect();
   burstHearts(r.left + r.width / 2, r.top, 5);
+  setLights();
   checkAllOut();
 }
 
@@ -337,6 +346,7 @@ function checkAllOut() {
 function relight() {
   celebrated = false;
   candles.forEach((c) => c.classList.remove("out"));
+  setLights();
   $("#wishMsg").hidden = true;
   $("#relightBtn").hidden = true;
   $("#cakeHint").textContent = "촛불을 손가락으로 톡톡 두드려서 꺼보세요!";
@@ -413,7 +423,13 @@ async function startMic() {
   let ambient = 0;
   let threshold = 1;
   let loud = 0;
+  let hintShown = false;
+  const samples = [];
   const startedAt = performance.now();
+
+  // 빨간 선을 막대의 이 위치에 고정합니다 (막대 = 임계값 대비 비율)
+  const MARK_AT = 60;
+  mark.style.left = MARK_AT + "%";
 
   const read = () => {
     analyser.getByteTimeDomainData(time);
@@ -438,25 +454,38 @@ async function startMic() {
     const level = read();
 
     if (phase === "calibrate") {
-      ambient = Math.max(ambient, level);
+      samples.push(level);
       if (performance.now() - startedAt > 1000) {
-        // 주변 소음의 1.6배, 최소 0.028 — 살살 불어도 넘어가도록 낮게 잡았습니다
-        threshold = Math.max(ambient * 1.6, 0.028);
+        // 최댓값만 쓰면 순간적인 잡음 한 번에 기준이 확 올라갑니다.
+        // 평균을 기준으로 하고 최댓값은 조금만 반영합니다.
+        const mean = samples.reduce((a, b) => a + b, 0) / samples.length;
+        const peak = Math.max(...samples);
+        ambient = mean + (peak - mean) * 0.3;
+        threshold = Math.min(0.32, Math.max(0.03, ambient * 1.5 + 0.02));
         phase = "listen";
         btn.textContent = "🎤 후~ 하고 불어보세요!";
         $("#cakeHint").textContent = "자, 마이크에 대고 크게 후~ 불어주세요!";
-        mark.style.left = Math.min(96, threshold * 250) + "%";
       }
     } else {
-      bar.style.width = Math.min(100, level * 250) + "%";
-      bar.classList.toggle("over", level > threshold);
-      loud = level > threshold ? loud + 1 : 0;
+      // 막대는 "임계값 대비 비율"입니다. 빨간 선(60%)이 곧 임계값이므로
+      // 눈에 보이는 것과 실제 판정이 절대 어긋나지 않습니다.
+      // (예전엔 둘을 각각 다른 배율로 그려서, 막대가 선을 넘어 보여도
+      //  실제로는 임계값 아래인 경우가 있었습니다)
+      const ratio = level / threshold;
+      bar.style.width = Math.min(100, ratio * MARK_AT) + "%";
+      bar.classList.toggle("over", ratio > 1);
+      loud = ratio > 1 ? loud + 1 : 0;
       if (loud >= 3) {
         blowAll();
         stopMic();
         btn.textContent = "🎤 잘 불었어요!";
         btn.disabled = true;
         return;
+      }
+      // 한참 안 되면 손가락으로 끄라고 안내
+      if (!hintShown && performance.now() - startedAt > 9000) {
+        hintShown = true;
+        $("#cakeHint").textContent = "잘 안 되면 촛불을 손가락으로 눌러도 꺼져요!";
       }
     }
     requestAnimationFrame(loop);
@@ -760,79 +789,6 @@ function closeLightbox() {
   $("#lightboxImg").src = "";
 }
 
-/* ───────── 페이지 넘기기 ───────── */
-let pages = [];
-// -1 로 시작해야 첫 goPage(0) 이 "이미 그 페이지임" 가드에 걸리지 않습니다
-let pageIdx = -1;
-
-function setupPager() {
-  pages = $$(".page");
-  const dots = $("#navDots");
-
-  $("#pageTotal").textContent = pages.length;
-  dots.innerHTML = pages
-    .map((p, i) => `<i data-go="${i}" title="${p.dataset.title || i + 1}"></i>`)
-    .join("");
-  dots.addEventListener("click", (e) => {
-    const i = e.target.dataset?.go;
-    if (i !== undefined) goPage(Number(i));
-  });
-
-  $("#prevBtn").addEventListener("click", () => goPage(pageIdx - 1));
-  $("#nextBtn").addEventListener("click", () => goPage(pageIdx + 1));
-
-  // 좌우 스와이프
-  let sx = 0, sy = 0, tracking = false;
-  const pager = $("#pager");
-  pager.addEventListener("touchstart", (e) => {
-    if (e.touches.length !== 1) return;
-    sx = e.touches[0].clientX;
-    sy = e.touches[0].clientY;
-    tracking = true;
-  }, { passive: true });
-  pager.addEventListener("touchend", (e) => {
-    if (!tracking) return;
-    tracking = false;
-    const dx = e.changedTouches[0].clientX - sx;
-    const dy = e.changedTouches[0].clientY - sy;
-    // 가로로 충분히 크고, 세로 스크롤보다 확실히 클 때만 (세로 스크롤과 안 싸우게)
-    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-      goPage(pageIdx + (dx < 0 ? 1 : -1));
-    }
-  }, { passive: true });
-
-  // 키보드 (PC 에서 볼 때)
-  window.addEventListener("keydown", (e) => {
-    if (!$("#lightbox").hidden) {
-      if (e.key === "Escape") closeLightbox();
-      return; // 사진 확대 중에는 페이지가 안 넘어가게
-    }
-    if (e.key === "ArrowRight") goPage(pageIdx + 1);
-    else if (e.key === "ArrowLeft") goPage(pageIdx - 1);
-  });
-
-  goPage(0, true);
-}
-
-function goPage(i, silent) {
-  // NaN 은 어떤 비교에도 false 라서 Number.isInteger 로 먼저 걸러야 합니다.
-  // (안 그러면 모든 페이지의 active 를 지운 뒤 pages[NaN] 에서 터져 화면이 빕니다)
-  if (!Number.isInteger(i) || i < 0 || i >= pages.length || i === pageIdx) return;
-  const dir = i > pageIdx ? "slide-l" : "slide-r";
-
-  pages.forEach((p) => p.classList.remove("active", "slide-l", "slide-r"));
-  const page = pages[i];
-  page.classList.add("active");
-  if (!silent && !reduceMotion) page.classList.add(dir);
-  page.scrollTop = 0;
-
-  pageIdx = i;
-  $("#pageNow").textContent = i + 1;
-  $("#prevBtn").disabled = i === 0;
-  $("#nextBtn").disabled = i === pages.length - 1;
-  $$("#navDots i").forEach((d, n) => d.classList.toggle("on", n === i));
-}
-
 /* ───────── 입장 ───────── */
 function enterSite() {
   const gate = $("#gate");
@@ -862,7 +818,6 @@ function init() {
   tickSeconds();
   buildCake();
   buildMemeWall();
-  setupPager();
   renderCodeBlock();
   buildGallery();
   setupTrail();

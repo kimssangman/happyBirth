@@ -19,21 +19,13 @@
 
 * { box-sizing: border-box; }
 
-/* 페이지 단위로 넘기는 방식이라 문서 전체 스크롤을 완전히 막습니다.
-   body 에만 overflow:hidden 을 걸면 html 이 여전히 스크롤되고,
-   모바일에서는 position:fixed 까지 해야 고무줄(바운스) 스크롤이 사라집니다. */
-html, body {
-  height: 100%;
-  overflow: hidden;
-  overscroll-behavior: none;
-}
 html { -webkit-text-size-adjust: 100%; }
 
 body {
-  position: fixed;
-  inset: 0;
   margin: 0;
   padding: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
   font-family: var(--font-cute);
   color: var(--ink);
   background-color: var(--deep);
@@ -48,7 +40,6 @@ body {
     linear-gradient(160deg, #2b0a4d 0%, #4b0d6b 40%, #7a1b8f 70%, #b3247a 100%);
   background-size: 300px 300px, 250px 250px, 200px 200px, 350px 350px, 280px 280px, 320px 320px, 100% 100%;
   background-attachment: fixed;
-  overflow: hidden;
   /* 더블탭 확대 방지. user-scalable=no 와 달리 두 손가락 확대는 남겨둡니다
      (글씨가 작을 때 확대할 방법은 있어야 하므로) */
   touch-action: manipulation;
@@ -110,107 +101,31 @@ body {
 .btn-enter:active { border-style: inset; transform: translateY(2px); }
 @keyframes pulse { 50% { transform: scale(1.06); } }
 
-/* ───────── 페이저 레이아웃 ─────────
-   스크롤 대신 한 화면에 한 페이지씩. 100dvh 를 쓰는 이유는
-   모바일 브라우저에서 100vh 가 주소창 높이를 빼지 않아 아래가 잘리기 때문입니다. */
-:root {
-  --topbar-h: 82px;
-  --nav-h: 58px;
-}
+/* ───────── 레이아웃 (세로 스크롤) ───────── */
 
-/* .site{display:flex} 가 브라우저 기본 [hidden]{display:none} 을 덮어써서
-   입장 전에도 본문이 보이므로 명시적으로 다시 숨깁니다 */
+/* .site 의 display 지정이 브라우저 기본 [hidden]{display:none} 을 덮어쓰므로
+   입장 전에는 명시적으로 다시 숨깁니다 */
 .site[hidden] { display: none; }
 
 .site {
   position: relative;
   z-index: 1;
-  height: 100vh;
-  height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: 40px;
 }
 
-.topbar { flex: 0 0 auto; }
-
-.pager {
-  flex: 1 1 auto;
-  position: relative;
-  min-height: 0; /* flex 자식이 넘칠 때 줄어들 수 있게 */
+/* 흐르는 글씨와 짤 띠는 스크롤해도 위에 붙어 있습니다 */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
 }
 
-.page {
-  position: absolute;
-  inset: 0;
-  display: none;
-  padding: 10px;
-  overflow-y: auto;
-  overscroll-behavior: contain; /* 페이지 안쪽 스크롤이 바깥으로 새지 않게 */
-  -webkit-overflow-scrolling: touch;
-}
-.page.active { display: block; }
-.page.slide-l { animation: slideL .28s ease; }
-.page.slide-r { animation: slideR .28s ease; }
-@keyframes slideL { from { opacity: .3; transform: translateX(22%); } }
-@keyframes slideR { from { opacity: .3; transform: translateX(-22%); } }
-
-/* 내용이 화면보다 짧으면 세로 가운데로 */
-.page-inner {
-  position: relative;
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-/* 표지처럼 패널이 아닌 페이지는 가로세로 가운데 정렬 */
-.page-inner:not(.panel) {
-  align-items: center;
-  text-align: center;
-}
-.page-inner.panel { justify-content: flex-start; }
-
-/* ───────── 페이지 넘기기 바 ───────── */
-.pager-nav {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, #2b0a4d, #12002b);
-  border-top: 3px ridge var(--hot-pink);
-  overflow: hidden; /* 어떤 화면 폭에서도 버튼이 밖으로 삐져나가지 않게 */
-}
-.nav-btn {
-  /* 좁은 화면에서는 줄어들 수 있어야 잘리지 않습니다 */
-  flex: 0 1 auto;
-  min-width: 0;
-  white-space: nowrap;
-  font-family: var(--font-cute);
-  font-size: .85rem;
-  font-weight: bold;
-  padding: 10px 9px;
-  min-height: 44px;
-  color: #fff;
-  background: linear-gradient(180deg, #ff5bd1, #b3007a);
-  border: 3px outset #ff9de8;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.nav-btn:active { border-style: inset; }
-.nav-btn:disabled { opacity: .35; cursor: default; }
-.nav-mid { flex: 1 1 auto; text-align: center; min-width: 0; }
-.nav-dots { display: flex; justify-content: center; gap: 5px; margin-bottom: 3px; }
-.nav-dots i {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: #6b3d8a;
-  display: block;
-  cursor: pointer;
-}
-.nav-dots i.on { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
-.nav-count { color: #ffd6f5; font-size: .68rem; font-family: var(--font-mono); }
-.nav-bgm { flex: 0 0 auto; margin: 0; padding: 8px 10px; min-height: 44px; }
+.page { padding: 14px 10px; }
+.page-inner { position: relative; }
+/* 표지처럼 패널이 아닌 섹션은 가운데 정렬 */
+.page-inner:not(.panel) { text-align: center; }
 
 /* 무지개 바 */
 .rainbow-bar {
@@ -445,7 +360,10 @@ body {
   width: 60%;
   margin: 0 auto -9px;
   display: flex;
-  flex-wrap: wrap-reverse;
+  /* wrap-reverse 를 쓰면 교차축이 뒤집혀서 align-items:flex-end 가
+     시각적으로 "위쪽 정렬"이 됩니다. 그러면 긴 초가 줄 높이를 정하고
+     짧은 초들이 그 위에 매달려 공중에 뜬 것처럼 보입니다. */
+  flex-wrap: wrap;
   justify-content: center;
   align-items: flex-end;
   gap: 3px 5px;
@@ -532,6 +450,66 @@ body {
   background: linear-gradient(180deg, #ddd, #888);
   border-radius: 0 0 50% 50%;
   border: 2px solid #666;
+}
+
+/* ───────── 불 끄고 촛불만 켠 상태 ─────────
+   촛불이 하나라도 살아있는 동안 케이크 칸을 어두운 방으로 만들고,
+   초 주변만 촛불빛으로 밝힙니다. 다 끄면 불이 켜지듯 원래대로 돌아옵니다. */
+#cakeSection .panel,
+#cakeSection .panel-title,
+#cakeSection .panel-body,
+#cakeSection .btn-retro,
+#cakeSection .candle-legend,
+#cakeSection .cake-hint {
+  transition: background .8s ease, color .8s ease, border-color .8s ease, filter .8s ease;
+}
+
+#cakeSection.lights-off .panel {
+  background: #0d0518;
+  border-color: #46264f;
+  box-shadow: 4px 4px 0 rgba(0,0,0,.6), 0 0 40px rgba(255,150,40,.18);
+}
+#cakeSection.lights-off .panel-title {
+  background: linear-gradient(180deg, #3a1240, #1b0722);
+  border-bottom-color: #46264f;
+  color: #ffbf6b;
+  text-shadow: 0 0 10px rgba(255,160,40,.7);
+}
+#cakeSection.lights-off .candle-legend { color: #ffc978; }
+#cakeSection.lights-off .cake-hint { color: #ffd9a0; }
+#cakeSection.lights-off .mic-help { color: #c9a9e0; }
+#cakeSection.lights-off .btn-retro {
+  background: linear-gradient(180deg, #4a2a55, #2a1533);
+  border-color: #6b4a75;
+  color: #ffd9a0;
+}
+
+/* 초 주변 촛불빛 */
+#cakeSection.lights-off .cake::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -40%;
+  width: 300%;
+  height: 190%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at 50% 32%,
+    rgba(255,190,90,.40) 0%,
+    rgba(255,150,50,.20) 28%,
+    rgba(255,120,30,.07) 48%,
+    transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: candleGlow 3.2s ease-in-out infinite;
+}
+@keyframes candleGlow { 50% { opacity: .78; } }
+
+/* 케이크 자체는 촛불빛만 받으므로 살짝 어둡고 따뜻하게 */
+#cakeSection.lights-off .cake-top,
+#cakeSection.lights-off .cake-mid,
+#cakeSection.lights-off .cake-bot,
+#cakeSection.lights-off .plate {
+  filter: brightness(.68) sepia(.35);
 }
 
 .candle-legend {
@@ -855,6 +833,27 @@ body {
   animation: beltSlide 26s linear infinite;
 }
 .gif-belt img { height: 38px; width: auto; image-rendering: pixelated; }
+
+/* 상단 띠 오른쪽 끝에 떠 있는 BGM 토글 */
+.topbar { position: sticky; }
+.bgm-toggle {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
+  color: #fff;
+  background: linear-gradient(180deg, #ff5bd1, #b3007a);
+  border: 3px outset #ff9de8;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(0,0,0,.6);
+}
+.bgm-toggle:active { border-style: inset; }
 @keyframes beltSlide { to { transform: translateX(-50%); } }
 
 .gallery-hint { font-size: .75rem; color: #a3005c; margin: 12px 0 0; }

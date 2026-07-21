@@ -34,9 +34,11 @@
       <div class="marquee" id="marquee"></div>
     </div>
     <div class="gif-belt" id="gifBelt" aria-hidden="true"></div>
+    <!-- buildMemeWall 이 .gif-belt 의 innerHTML 을 덮어쓰므로 반드시 띠 바깥에 둡니다 -->
+    <button class="bgm-toggle" id="bgmBtn" aria-label="배경음악 켜기/끄기">🔊</button>
   </div>
 
-  <main class="pager" id="pager">
+  <main class="scroller">
 
     <!-- ══ 1. 표지 ══ -->
     <section class="page" data-title="표지">
@@ -67,7 +69,7 @@
     </section>
 
     <!-- ══ 2. 케이크 ══ -->
-    <section class="page" data-title="케이크">
+    <section class="page" data-title="케이크" id="cakeSection">
       <div class="page-inner panel">
         <h2 class="panel-title">🎂 촛불을 꺼주세요 🎂</h2>
         <div class="panel-body">
@@ -201,16 +203,6 @@
 
   </main>
 
-  <!-- 페이지 넘기기 -->
-  <nav class="pager-nav">
-    <button class="nav-btn" id="prevBtn" aria-label="이전 페이지">☜ 이전</button>
-    <div class="nav-mid">
-      <div class="nav-dots" id="navDots"></div>
-      <div class="nav-count"><span id="pageNow">1</span> / <span id="pageTotal">7</span></div>
-    </div>
-    <button class="nav-btn" id="nextBtn" aria-label="다음 페이지">다음 ☞</button>
-    <button class="nav-bgm btn-retro small" id="bgmBtn">🔊</button>
-  </nav>
 </div>
 
 <!-- 사진 크게 보기 -->
