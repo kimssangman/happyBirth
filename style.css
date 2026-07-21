@@ -326,8 +326,9 @@ body {
 
 /* ───────── 케이크 ───────── */
 .cake {
-  --cw: 9px;   /* 초 굵기 — 개수가 많으면 JS가 줄입니다 */
-  --ch: 34px;  /* 초 길이 */
+  --cw: 9px;         /* 짧은 초 굵기 — 개수가 많으면 JS가 줄입니다 */
+  --ch-base: 30px;   /* 짧은 초 길이 */
+  --ch: var(--ch-base);
   position: relative;
   width: 200px;
   max-width: 70vw;
@@ -347,10 +348,17 @@ body {
   width: var(--cw);
   height: var(--ch);
   background: repeating-linear-gradient(45deg, #ff5b8a 0 4px, #fff 4px 8px);
+  align-self: flex-end;
   border-radius: 2px;
   cursor: pointer;
   border: none;
   padding: 0;
+}
+/* 긴 초 = 10살. 더 길고 굵고 금색 줄무늬 */
+.candle.long {
+  --cw: 13px;
+  --ch: calc(var(--ch-base) * 1.75);
+  background: repeating-linear-gradient(45deg, #f5a300 0 5px, #fff6d6 5px 10px);
 }
 .candle::before { /* 심지 */
   content: "";
@@ -419,8 +427,14 @@ body {
   border: 2px solid #666;
 }
 
+.candle-legend {
+  margin: 14px 0 0;
+  font-size: .8rem;
+  color: #c2007a;
+  font-weight: bold;
+}
 .cake-hint {
-  margin: 18px 0 0;
+  margin: 8px 0 0;
   font-size: .95rem;
   color: #a3005c;
   font-weight: bold;

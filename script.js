@@ -275,17 +275,20 @@ function buildCake() {
   wrap.innerHTML = "";
   candles = [];
 
-  // 초가 많으면 얇고 짧게 만들어 여러 줄로 감쌉니다
+  // 한국식으로 긴 초 1개 = 10살, 짧은 초 1개 = 1살
   const n = CONFIG.candleCount;
-  const cw = n > 20 ? 5 : n > 12 ? 6 : n > 8 ? 7 : 9;
-  const ch = n > 20 ? 20 : n > 12 ? 26 : 34;
-  cake.style.setProperty("--cw", cw + "px");
-  cake.style.setProperty("--ch", ch + "px");
-  for (let i = 0; i < CONFIG.candleCount; i++) {
+  const longs = Math.floor(n / 10);
+  const shorts = n % 10;
+  const total = longs + shorts;
+
+  // 초가 많아지면 조금 얇게
+  cake.style.setProperty("--cw", total > 12 ? "7px" : "9px");
+  for (let i = 0; i < total; i++) {
+    const isLong = i < longs;
     const c = document.createElement("button");
-    c.className = "candle";
+    c.className = isLong ? "candle long" : "candle";
     c.type = "button";
-    c.setAttribute("aria-label", `${i + 1}번째 촛불 끄기`);
+    c.setAttribute("aria-label", isLong ? "긴 초(10살) 끄기" : "짧은 초(1살) 끄기");
     c.innerHTML = '<span class="flame"></span>';
     c.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -294,6 +297,11 @@ function buildCake() {
     wrap.appendChild(c);
     candles.push(c);
   }
+
+  const parts = [];
+  if (longs) parts.push(`긴 초 ${longs}개(${longs * 10}살)`);
+  if (shorts) parts.push(`짧은 초 ${shorts}개(${shorts}살)`);
+  $("#candleLegend").textContent = parts.join(" + ") + ` = ${n}살 🎂`;
 }
 
 function blowOut(candle) {
