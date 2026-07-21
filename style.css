@@ -19,7 +19,14 @@
 
 * { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+/* 가로 스크롤 차단.
+   body 에만 걸면 그 값이 뷰포트로 전파되면서 정작 body 자신은 클리핑을
+   안 하게 됩니다. html 에도 함께 걸어야 확실히 막힙니다. */
+html {
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+}
 
 body {
   margin: 0;
@@ -463,6 +470,10 @@ body {
 #cakeSection .cake-hint {
   transition: background .8s ease, color .8s ease, border-color .8s ease, filter .8s ease;
 }
+
+/* 촛불빛(.cake::before)이 300% 폭이라 패널 밖으로 새어나가면
+   문서에 가로 스크롤이 생깁니다. 패널 안에서 잘라냅니다. */
+#cakeSection .panel { overflow: hidden; }
 
 #cakeSection.lights-off .panel {
   background: #0d0518;
