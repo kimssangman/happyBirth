@@ -365,7 +365,7 @@ function relight() {
   legend.hidden = true;
   legend.classList.remove("reveal");
   const hint = $("#cakeHint");
-  hint.textContent = "촛불을 손가락으로 톡톡 두드려서 꺼보세요!";
+  hint.textContent = "🎤 버튼을 누르고 후~ 하고 불어보세요!";
   hint.classList.remove("reveal");
   const btn = $("#micBtn");
   btn.disabled = false;

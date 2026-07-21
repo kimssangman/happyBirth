@@ -14,6 +14,9 @@
   --ink: #33004d;
   --font-cute: "Comic Sans MS", "Chalkboard SE", "나눔손글씨 펜", "HY견고딕", system-ui, sans-serif;
   --font-mono: "Courier New", "D2Coding", monospace;
+  /* 편지 전용 손글씨체 */
+  --font-hand: "Nanum Pen Script", "Gaegu", "나눔손글씨 펜", "Bradley Hand",
+               "Chalkboard SE", "Comic Sans MS", cursive;
   --gold-grad: linear-gradient(180deg, #fffcae 0%, #ffdd00 30%, #ff9500 55%, #ff2d95 85%);
 }
 
@@ -693,21 +696,22 @@ body {
   text-align: left;
 }
 .letter-to, .letter-from {
-  font-weight: bold;
+  font-family: var(--font-hand);
   color: #a3005c;
   margin: 0 0 10px;
-  font-size: 1rem;
+  /* 손글씨체는 같은 px 에서도 작아 보여서 조금 키웁니다 */
+  font-size: 1.5rem;
 }
 .letter-from { text-align: right; margin: 14px 0 0; }
 .letter-text {
-  font-family: var(--font-cute);
-  font-size: clamp(.9rem, 3.8vw, 1rem);
+  font-family: var(--font-hand);
+  font-size: clamp(1.35rem, 5.6vw, 1.6rem);
   line-height: 28px;
   margin: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   min-height: 140px;
-  color: #2b2b2b;
+  color: #24303f; /* 볼펜 잉크 느낌 */
 }
 .caret { animation: blink .7s steps(2) infinite; color: #e6007e; }
 
