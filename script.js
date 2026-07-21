@@ -299,10 +299,19 @@ function buildCake() {
 
   setLights();
 
-  const parts = [];
-  if (longs) parts.push(`긴 초 ${longs}개(${longs * 10}살)`);
-  if (shorts) parts.push(`짧은 초 ${shorts}개(${shorts}살)`);
-  $("#candleLegend").textContent = parts.join(" + ") + ` = ${n}살 🎂`;
+  // 촛불을 다 끄면 아래 문구가 "🎉 축하합니다! 🎉" 로 바뀌면서
+  // "우리 ○○이의 27살 생일을 / 축하합니다" 로 이어집니다.
+  $("#candleLegend").textContent = `우리 ${withSubjectSuffix(CONFIG.toName)} ${n}살 생일을 🎂`;
+}
+
+/* 이름 뒤에 "이의" 를 붙일지 "의" 만 붙일지 정합니다.
+   받침이 있으면 보경 → 보경이의, 없으면 수지 → 수지의 */
+function withSubjectSuffix(name) {
+  const last = name.trim().slice(-1);
+  const code = last.charCodeAt(0);
+  const isHangul = code >= 0xac00 && code <= 0xd7a3;
+  const hasBatchim = isHangul && (code - 0xac00) % 28 !== 0;
+  return name + (hasBatchim ? "이의" : "의");
 }
 
 /* 촛불이 하나라도 살아있으면 방 불을 끕니다 */
