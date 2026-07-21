@@ -42,9 +42,12 @@ const CONFIG = {
 
 사랑해.`,
 
-  // 갤러리 (assets 폴더에 사진 넣고 여기 추가하세요)
+  // 갤러리 (캡션은 마음대로 바꾸세요)
   photos: [
-    // { src: "assets/photo1.jpg", caption: "우리 첫 사진" },
+    { src: "assets/photos/photo1.jpg", caption: "핑크뮬리" },
+    { src: "assets/photos/photo2.jpg", caption: "크리스마스 스튜디오" },
+    { src: "assets/photos/photo3.jpg", caption: "귀여움" },
+    { src: "assets/photos/photo4.jpg", caption: "야경 보러 간 날" },
   ],
 
   bgmOn: true,
@@ -281,8 +284,8 @@ function buildCake() {
   const shorts = n % 10;
   const total = longs + shorts;
 
-  // 초가 많아지면 조금 얇게
-  cake.style.setProperty("--cw", total > 12 ? "7px" : "9px");
+  // 초는 맨 윗층 폭 안에 들어가야 하므로 개수에 맞춰 굵기를 줄입니다
+  cake.style.setProperty("--cw", total > 12 ? "5px" : total > 9 ? "6px" : "7px");
   for (let i = 0; i < total; i++) {
     const isLong = i < longs;
     const c = document.createElement("button");
@@ -437,18 +440,18 @@ async function startMic() {
     if (phase === "calibrate") {
       ambient = Math.max(ambient, level);
       if (performance.now() - startedAt > 1000) {
-        // 주변 소음의 2.5배, 최소 0.06 — 조용한 방에서도 시끄러운 방에서도 동작
-        threshold = Math.max(ambient * 2.5, 0.06);
+        // 주변 소음의 1.6배, 최소 0.028 — 살살 불어도 넘어가도록 낮게 잡았습니다
+        threshold = Math.max(ambient * 1.6, 0.028);
         phase = "listen";
         btn.textContent = "🎤 후~ 하고 불어보세요!";
         $("#cakeHint").textContent = "자, 마이크에 대고 크게 후~ 불어주세요!";
-        mark.style.left = Math.min(96, threshold * 100) + "%";
+        mark.style.left = Math.min(96, threshold * 250) + "%";
       }
     } else {
-      bar.style.width = Math.min(100, level * 100) + "%";
+      bar.style.width = Math.min(100, level * 250) + "%";
       bar.classList.toggle("over", level > threshold);
       loud = level > threshold ? loud + 1 : 0;
-      if (loud >= 4) {
+      if (loud >= 3) {
         blowAll();
         stopMic();
         btn.textContent = "🎤 잘 불었어요!";
@@ -663,14 +666,16 @@ function buildGallery() {
     )
     .join("");
 
-  // 이미지가 없으면 이모지로 대체
   $$(".gal-img").forEach((img) => {
+    // 이미지가 없으면 이모지로 대체
     img.addEventListener("error", () => {
       const div = document.createElement("div");
       div.className = "gal-fallback";
       div.textContent = img.dataset.fallback;
       img.replaceWith(div);
     });
+    // 누르면 크게 보기
+    img.addEventListener("click", () => openLightbox(img.src, img.alt));
   });
 }
 
@@ -744,6 +749,17 @@ function playFanfare() {
   ["c5", "e5", "g5", "c6"].forEach((n, i) => beep(freqOf(n), t + i * 0.09, 0.3, "triangle", 0.1));
 }
 
+/* ───────── 사진 크게 보기 ───────── */
+function openLightbox(src, caption) {
+  $("#lightboxImg").src = src;
+  $("#lightboxCap").textContent = caption || "";
+  $("#lightbox").hidden = false;
+}
+function closeLightbox() {
+  $("#lightbox").hidden = true;
+  $("#lightboxImg").src = "";
+}
+
 /* ───────── 페이지 넘기기 ───────── */
 let pages = [];
 // -1 로 시작해야 첫 goPage(0) 이 "이미 그 페이지임" 가드에 걸리지 않습니다
@@ -787,6 +803,10 @@ function setupPager() {
 
   // 키보드 (PC 에서 볼 때)
   window.addEventListener("keydown", (e) => {
+    if (!$("#lightbox").hidden) {
+      if (e.key === "Escape") closeLightbox();
+      return; // 사진 확대 중에는 페이지가 안 넘어가게
+    }
     if (e.key === "ArrowRight") goPage(pageIdx + 1);
     else if (e.key === "ArrowLeft") goPage(pageIdx - 1);
   });
@@ -854,6 +874,7 @@ function init() {
   $("#micBtn").addEventListener("click", startMic);
   $("#relightBtn").addEventListener("click", relight);
   $("#runCodeBtn").addEventListener("click", runCode);
+  $("#lightbox").addEventListener("click", closeLightbox);
   $("#bgmBtn").addEventListener("click", () => (bgmPlaying ? stopBgm() : startBgm()));
 
   // 자정 넘어가면 D-DAY 갱신

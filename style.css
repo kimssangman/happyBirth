@@ -19,12 +19,21 @@
 
 * { box-sizing: border-box; }
 
+/* 페이지 단위로 넘기는 방식이라 문서 전체 스크롤을 완전히 막습니다.
+   body 에만 overflow:hidden 을 걸면 html 이 여전히 스크롤되고,
+   모바일에서는 position:fixed 까지 해야 고무줄(바운스) 스크롤이 사라집니다. */
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
 html { -webkit-text-size-adjust: 100%; }
 
 body {
+  position: fixed;
+  inset: 0;
   margin: 0;
   padding: 0;
-  min-height: 100vh;
   font-family: var(--font-cute);
   color: var(--ink);
   background-color: var(--deep);
@@ -137,6 +146,7 @@ body {
   display: none;
   padding: 10px;
   overflow-y: auto;
+  overscroll-behavior: contain; /* 페이지 안쪽 스크롤이 바깥으로 새지 않게 */
   -webkit-overflow-scrolling: touch;
 }
 .page.active { display: block; }
@@ -165,17 +175,21 @@ body {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  gap: 4px;
+  padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
   background: linear-gradient(180deg, #2b0a4d, #12002b);
   border-top: 3px ridge var(--hot-pink);
+  overflow: hidden; /* 어떤 화면 폭에서도 버튼이 밖으로 삐져나가지 않게 */
 }
 .nav-btn {
-  flex: 0 0 auto;
+  /* 좁은 화면에서는 줄어들 수 있어야 잘리지 않습니다 */
+  flex: 0 1 auto;
+  min-width: 0;
+  white-space: nowrap;
   font-family: var(--font-cute);
-  font-size: .92rem;
+  font-size: .85rem;
   font-weight: bold;
-  padding: 10px 12px;
+  padding: 10px 9px;
   min-height: 44px;
   color: #fff;
   background: linear-gradient(180deg, #ff5bd1, #b3007a);
@@ -423,14 +437,18 @@ body {
   max-width: 70vw;
   margin: 10px auto 0;
 }
-/* 초가 많으면 여러 줄로 감쌉니다 (27개까지 테스트) */
+/* 초는 맨 윗층(60% 폭) 안에만 꽂혀야 합니다.
+   그보다 넓게 퍼지면 케이크가 없는 허공에 떠 있는 것처럼 보입니다.
+   margin-bottom 을 음수로 줘서 초 밑동이 프로스팅에 박히게 하고,
+   .cake-top 이 DOM 상 뒤에 있으므로 밑동 위에 덮여 그려집니다. */
 .candles {
+  width: 60%;
+  margin: 0 auto -9px;
   display: flex;
   flex-wrap: wrap-reverse;
   justify-content: center;
   align-items: flex-end;
-  gap: calc(var(--ch) * 0.75) calc(var(--cw) * 0.9);
-  margin-bottom: 4px;
+  gap: 3px 5px;
 }
 .candle {
   position: relative;
@@ -445,7 +463,7 @@ body {
 }
 /* 긴 초 = 10살. 더 길고 굵고 금색 줄무늬 */
 .candle.long {
-  --cw: 13px;
+  --cw: 10px;
   --ch: calc(var(--ch-base) * 1.75);
   background: repeating-linear-gradient(45deg, #f5a300 0 5px, #fff6d6 5px 10px);
 }
@@ -745,7 +763,7 @@ body {
 /* ───────── 갤러리 ───────── */
 .gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
 }
 .gallery figure {
@@ -761,10 +779,10 @@ body {
 .gallery img {
   width: 100%;
   aspect-ratio: 1;
-  object-fit: contain;
+  object-fit: cover; /* 실제 사진은 잘라서 꽉 채우는 편이 보기 좋습니다 */
   display: block;
-  image-rendering: pixelated;
   background: #ffeef9;
+  cursor: pointer;
 }
 .gallery figcaption { font-size: .72rem; color: #80005c; margin-top: 5px; }
 .gal-fallback, .gal-empty {
@@ -838,6 +856,51 @@ body {
 }
 .gif-belt img { height: 38px; width: auto; image-rendering: pixelated; }
 @keyframes beltSlide { to { transform: translateX(-50%); } }
+
+.gallery-hint { font-size: .75rem; color: #a3005c; margin: 12px 0 0; }
+
+/* ───────── 사진 크게 보기 ───────── */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(10, 0, 25, .95);
+}
+.lightbox[hidden] { display: none; }
+.lightbox img {
+  max-width: 100%;
+  max-height: 72vh;
+  object-fit: contain;
+  border: 4px ridge var(--border);
+  background: #000;
+}
+.lightbox-cap { color: #ffd6f5; font-size: .9rem; margin: 0; text-align: center; }
+.lightbox-close {
+  font-family: var(--font-cute);
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 12px 22px;
+  min-height: 48px;
+  color: #fff;
+  background: linear-gradient(180deg, #ff5bd1, #b3007a);
+  border: 3px outset #ff9de8;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.outro-msg {
+  font-size: .95rem;
+  color: #a3005c;
+  line-height: 1.8;
+  margin: 10px 0 0;
+  font-weight: bold;
+}
 
 /* ───────── 마지막 페이지 마무리 ───────── */
 .outro {
