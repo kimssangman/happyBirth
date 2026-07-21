@@ -39,7 +39,10 @@ body {
     linear-gradient(160deg, #2b0a4d 0%, #4b0d6b 40%, #7a1b8f 70%, #b3247a 100%);
   background-size: 300px 300px, 250px 250px, 200px 200px, 350px 350px, 280px 280px, 320px 320px, 100% 100%;
   background-attachment: fixed;
-  overflow-x: hidden;
+  overflow: hidden;
+  /* 더블탭 확대 방지. user-scalable=no 와 달리 두 손가락 확대는 남겨둡니다
+     (글씨가 작을 때 확대할 방법은 있어야 하므로) */
+  touch-action: manipulation;
   cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><text y='22' font-size='20'>💖</text></svg>") 4 4, auto;
 }
 
@@ -98,14 +101,102 @@ body {
 .btn-enter:active { border-style: inset; transform: translateY(2px); }
 @keyframes pulse { 50% { transform: scale(1.06); } }
 
-/* ───────── 레이아웃 ───────── */
+/* ───────── 페이저 레이아웃 ─────────
+   스크롤 대신 한 화면에 한 페이지씩. 100dvh 를 쓰는 이유는
+   모바일 브라우저에서 100vh 가 주소창 높이를 빼지 않아 아래가 잘리기 때문입니다. */
+:root {
+  --topbar-h: 82px;
+  --nav-h: 58px;
+}
+
+/* .site{display:flex} 가 브라우저 기본 [hidden]{display:none} 을 덮어써서
+   입장 전에도 본문이 보이므로 명시적으로 다시 숨깁니다 */
+.site[hidden] { display: none; }
+
 .site {
   position: relative;
   z-index: 1;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 0 0 40px;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
+
+.topbar { flex: 0 0 auto; }
+
+.pager {
+  flex: 1 1 auto;
+  position: relative;
+  min-height: 0; /* flex 자식이 넘칠 때 줄어들 수 있게 */
+}
+
+.page {
+  position: absolute;
+  inset: 0;
+  display: none;
+  padding: 10px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.page.active { display: block; }
+.page.slide-l { animation: slideL .28s ease; }
+.page.slide-r { animation: slideR .28s ease; }
+@keyframes slideL { from { opacity: .3; transform: translateX(22%); } }
+@keyframes slideR { from { opacity: .3; transform: translateX(-22%); } }
+
+/* 내용이 화면보다 짧으면 세로 가운데로 */
+.page-inner {
+  position: relative;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+/* 표지처럼 패널이 아닌 페이지는 가로세로 가운데 정렬 */
+.page-inner:not(.panel) {
+  align-items: center;
+  text-align: center;
+}
+.page-inner.panel { justify-content: flex-start; }
+
+/* ───────── 페이지 넘기기 바 ───────── */
+.pager-nav {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, #2b0a4d, #12002b);
+  border-top: 3px ridge var(--hot-pink);
+}
+.nav-btn {
+  flex: 0 0 auto;
+  font-family: var(--font-cute);
+  font-size: .92rem;
+  font-weight: bold;
+  padding: 10px 12px;
+  min-height: 44px;
+  color: #fff;
+  background: linear-gradient(180deg, #ff5bd1, #b3007a);
+  border: 3px outset #ff9de8;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.nav-btn:active { border-style: inset; }
+.nav-btn:disabled { opacity: .35; cursor: default; }
+.nav-mid { flex: 1 1 auto; text-align: center; min-width: 0; }
+.nav-dots { display: flex; justify-content: center; gap: 5px; margin-bottom: 3px; }
+.nav-dots i {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #6b3d8a;
+  display: block;
+  cursor: pointer;
+}
+.nav-dots i.on { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+.nav-count { color: #ffd6f5; font-size: .68rem; font-family: var(--font-mono); }
+.nav-bgm { flex: 0 0 auto; margin: 0; padding: 8px 10px; min-height: 44px; }
 
 /* 무지개 바 */
 .rainbow-bar {
@@ -246,13 +337,6 @@ body {
 @keyframes blink { 50% { opacity: 0; } }
 
 /* ───────── 공사중 / 카운터 스트립 ───────── */
-.strip {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 12px;
-}
 .strip-row {
   display: flex;
   align-items: center;
@@ -260,9 +344,15 @@ body {
   flex-wrap: wrap;
   gap: 12px;
 }
-.strip .asset { height: auto; image-rendering: pixelated; }
-.strip .banner { width: 100%; max-width: 300px; }
-.strip .icon { width: 44px; }
+.banner {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  margin: 10px auto;
+  image-rendering: pixelated;
+}
+.icon { width: 40px; height: auto; image-rendering: pixelated; }
 .asset-fallback {
   font-size: 2rem;
   filter: drop-shadow(0 0 6px var(--yellow));
@@ -288,10 +378,9 @@ body {
 
 /* ───────── 패널 (테이블 레이아웃 감성) ───────── */
 .panel {
-  margin: 18px 10px;
   background: var(--panel-bg);
   border: 4px ridge var(--border);
-  box-shadow: 6px 6px 0 rgba(0,0,0,.45);
+  box-shadow: 4px 4px 0 rgba(0,0,0,.45);
 }
 .panel-title {
   margin: 0;
@@ -656,8 +745,8 @@ body {
 /* ───────── 갤러리 ───────── */
 .gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
 }
 .gallery figure {
   margin: 0;
@@ -685,7 +774,7 @@ body {
   font-size: 2.6rem;
   background: #ffeef9;
 }
-.gal-empty { opacity: .45; border: 2px dashed #ff9de8; }
+.gal-empty { opacity: .45; border: 2px dashed #ff9de8; font-size: 1.6rem; }
 .gallery-note { font-size: .72rem; color: #a3006e; margin-top: 12px; line-height: 1.6; }
 .gallery-note code {
   background: #fff;
@@ -708,9 +797,10 @@ body {
   align-items: center;
   gap: 8px;
 }
+/* 26개가 한 화면에 다 들어가야 해서 작게 잡습니다 */
 .meme-wall img {
-  max-width: 96px;
-  max-height: 90px;
+  max-width: 58px;
+  max-height: 56px;
   width: auto;
   height: auto;
   image-rendering: pixelated;
@@ -749,13 +839,17 @@ body {
 .gif-belt img { height: 38px; width: auto; image-rendering: pixelated; }
 @keyframes beltSlide { to { transform: translateX(-50%); } }
 
-/* ───────── 푸터 ───────── */
-.footer { margin-top: 30px; text-align: center; padding-bottom: 10px; }
-.footer p { color: #ffd6f5; font-size: .78rem; line-height: 1.8; margin: 10px 12px; }
-.webring { color: var(--cyan) !important; font-size: .85rem !important; }
-.footer-copy { color: #c9a3e6 !important; font-size: .68rem !important; font-family: var(--font-mono); }
-.footer-credit { color: #9d7ab8 !important; font-size: .62rem !important; }
-.footer-credit a { color: #b98fd6; }
+/* ───────── 마지막 페이지 마무리 ───────── */
+.outro {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 2px dashed #ff9de8;
+}
+.outro p { margin: 6px 0; line-height: 1.7; }
+.webring { color: #b3007a; font-size: .8rem; font-weight: bold; }
+.footer-copy { color: #a3689e; font-size: .64rem; font-family: var(--font-mono); }
+.footer-credit { color: #b07aa8; font-size: .62rem; }
+.footer-credit a { color: #c2007a; }
 
 /* ───────── 이펙트 레이어 ───────── */
 .fx-layer {

@@ -729,19 +729,88 @@ function startBgm() {
     bgmTimer = setTimeout(loop, ms);
   };
   loop();
-  $("#bgmBtn").textContent = "🔊 BGM 끄기";
+  $("#bgmBtn").textContent = "🔊";
 }
 
 function stopBgm() {
   bgmPlaying = false;
   clearTimeout(bgmTimer);
-  $("#bgmBtn").textContent = "🔇 BGM 켜기";
+  $("#bgmBtn").textContent = "🔇";
 }
 
 function playFanfare() {
   if (!audioCtx) return;
   const t = audioCtx.currentTime;
   ["c5", "e5", "g5", "c6"].forEach((n, i) => beep(freqOf(n), t + i * 0.09, 0.3, "triangle", 0.1));
+}
+
+/* ───────── 페이지 넘기기 ───────── */
+let pages = [];
+// -1 로 시작해야 첫 goPage(0) 이 "이미 그 페이지임" 가드에 걸리지 않습니다
+let pageIdx = -1;
+
+function setupPager() {
+  pages = $$(".page");
+  const dots = $("#navDots");
+
+  $("#pageTotal").textContent = pages.length;
+  dots.innerHTML = pages
+    .map((p, i) => `<i data-go="${i}" title="${p.dataset.title || i + 1}"></i>`)
+    .join("");
+  dots.addEventListener("click", (e) => {
+    const i = e.target.dataset?.go;
+    if (i !== undefined) goPage(Number(i));
+  });
+
+  $("#prevBtn").addEventListener("click", () => goPage(pageIdx - 1));
+  $("#nextBtn").addEventListener("click", () => goPage(pageIdx + 1));
+
+  // 좌우 스와이프
+  let sx = 0, sy = 0, tracking = false;
+  const pager = $("#pager");
+  pager.addEventListener("touchstart", (e) => {
+    if (e.touches.length !== 1) return;
+    sx = e.touches[0].clientX;
+    sy = e.touches[0].clientY;
+    tracking = true;
+  }, { passive: true });
+  pager.addEventListener("touchend", (e) => {
+    if (!tracking) return;
+    tracking = false;
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    // 가로로 충분히 크고, 세로 스크롤보다 확실히 클 때만 (세로 스크롤과 안 싸우게)
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      goPage(pageIdx + (dx < 0 ? 1 : -1));
+    }
+  }, { passive: true });
+
+  // 키보드 (PC 에서 볼 때)
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") goPage(pageIdx + 1);
+    else if (e.key === "ArrowLeft") goPage(pageIdx - 1);
+  });
+
+  goPage(0, true);
+}
+
+function goPage(i, silent) {
+  // NaN 은 어떤 비교에도 false 라서 Number.isInteger 로 먼저 걸러야 합니다.
+  // (안 그러면 모든 페이지의 active 를 지운 뒤 pages[NaN] 에서 터져 화면이 빕니다)
+  if (!Number.isInteger(i) || i < 0 || i >= pages.length || i === pageIdx) return;
+  const dir = i > pageIdx ? "slide-l" : "slide-r";
+
+  pages.forEach((p) => p.classList.remove("active", "slide-l", "slide-r"));
+  const page = pages[i];
+  page.classList.add("active");
+  if (!silent && !reduceMotion) page.classList.add(dir);
+  page.scrollTop = 0;
+
+  pageIdx = i;
+  $("#pageNow").textContent = i + 1;
+  $("#prevBtn").disabled = i === 0;
+  $("#nextBtn").disabled = i === pages.length - 1;
+  $$("#navDots i").forEach((d, n) => d.classList.toggle("on", n === i));
 }
 
 /* ───────── 입장 ───────── */
@@ -773,6 +842,7 @@ function init() {
   tickSeconds();
   buildCake();
   buildMemeWall();
+  setupPager();
   renderCodeBlock();
   buildGallery();
   setupTrail();

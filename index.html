@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>★☆ 생일 축하해 ☆★ 홈페이지 ★☆</title>
 <meta name="description" content="1999년에서 온 생일 축하 홈페이지">
-<meta name="theme-color" content="#ff00ff">
+<meta name="theme-color" content="#1a0033">
 <meta property="og:title" content="★☆ 생일 축하해 ☆★">
 <meta property="og:description" content="여기를 클릭하세요 ☞ 당신을 위한 홈페이지">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎂</text></svg>">
@@ -26,190 +26,182 @@
 </div>
 
 <!-- ═══════════ 본문 ═══════════ -->
-<main id="site" class="site" hidden>
+<div id="site" class="site" hidden>
 
-  <!-- 상단 반짝이 바 -->
-  <div class="rainbow-bar" aria-hidden="true"></div>
-
-  <!-- 흐르는 글씨 -->
-  <div class="marquee-box">
-    <div class="marquee" id="marquee"></div>
+  <!-- 항상 위에 붙어있는 띠 -->
+  <div class="topbar">
+    <div class="rainbow-bar" aria-hidden="true"></div>
+    <div class="marquee-box">
+      <div class="marquee" id="marquee"></div>
+    </div>
+    <div class="gif-belt" id="gifBelt" aria-hidden="true"></div>
   </div>
 
-  <!-- 흐르는 짤 띠 -->
-  <div class="gif-belt" id="gifBelt" aria-hidden="true"></div>
+  <main class="pager" id="pager">
 
-  <!-- 헤더 -->
-  <header class="header">
-    <div class="sparkles" aria-hidden="true"></div>
-    <img class="asset flames" src="assets/memes/welcome-flames.gif" alt="WELCOME" data-fallback="🔥 WELCOME 🔥">
-    <h1 class="wordart main-title">
-      <span>H</span><span>A</span><span>P</span><span>P</span><span>Y</span>
-      <br class="brk">
-      <span>B</span><span>I</span><span>R</span><span>T</span><span>H</span><span>D</span><span>A</span><span>Y</span>
-    </h1>
-    <p class="subtitle">♡ <span id="toName">○○</span> 님의 생일을 진심으로 축하드립니다 ♡</p>
-    <div class="baby-row">
-      <img class="asset baby" src="assets/memes/dancing-baby.gif" alt="" data-fallback="🕺">
-      <span class="baby-caption blink">↑ 이 아기가 축하해주고 있음 ↑</span>
-      <img class="asset baby flip" src="assets/memes/dancing-baby-hula-skirt.gif" alt="" data-fallback="💃">
-    </div>
-    <div class="hr-deco" aria-hidden="true">･ﾟ✧ ─────── ✦ ─────── ✧ﾟ･</div>
-  </header>
-
-  <!-- 공사중 배너 + 방문자 카운터 -->
-  <section class="strip">
-    <img class="asset banner" src="assets/memes/under-construction-sign.gif" alt="공사중" data-fallback="🚧 UNDER CONSTRUCTION 🚧">
-    <div class="strip-row">
-      <img class="asset icon" src="assets/heart-3.gif" alt="" data-fallback="💖">
-      <div class="counter-box">
-        <span class="counter-label">방문자수</span>
-        <span class="counter" id="visitorCounter">0000000</span>
-      </div>
-      <img class="asset icon" src="assets/star-glowing.svg" alt="" data-fallback="⭐">
-    </div>
-  </section>
-
-  <!-- ═══ 케이크 ═══ -->
-  <section class="panel" id="cakePanel">
-    <h2 class="panel-title">🎂 촛불을 꺼주세요 🎂</h2>
-    <div class="panel-body">
-      <div class="cake" id="cake">
-        <div class="candles" id="candles"></div>
-        <div class="cake-top"></div>
-        <div class="cake-mid"></div>
-        <div class="cake-bot"></div>
-        <div class="plate"></div>
-      </div>
-      <p class="candle-legend" id="candleLegend"></p>
-      <p class="cake-hint" id="cakeHint">촛불을 손가락으로 톡톡 두드려서 꺼보세요!</p>
-      <div class="mic-meter" id="micMeter" hidden>
-        <div class="mic-track">
-          <div class="mic-bar" id="micBar"></div>
-          <div class="mic-mark" id="micMark"></div>
+    <!-- ══ 1. 표지 ══ -->
+    <section class="page" data-title="표지">
+      <div class="page-inner">
+        <div class="sparkles" aria-hidden="true"></div>
+        <img class="asset flames" src="assets/memes/welcome-flames.gif" alt="WELCOME" data-fallback="🔥 WELCOME 🔥">
+        <h1 class="wordart main-title">
+          <span>H</span><span>A</span><span>P</span><span>P</span><span>Y</span>
+          <br>
+          <span>B</span><span>I</span><span>R</span><span>T</span><span>H</span><span>D</span><span>A</span><span>Y</span>
+        </h1>
+        <p class="subtitle">♡ <span id="toName">○○</span> 님의 생일을<br>진심으로 축하드립니다 ♡</p>
+        <div class="baby-row">
+          <img class="asset baby" src="assets/memes/dancing-baby.gif" alt="" data-fallback="🕺">
+          <span class="baby-caption blink">↑ 이 아기가 축하해주고 있음 ↑</span>
+          <img class="asset baby flip" src="assets/memes/dancing-baby-hula-skirt.gif" alt="" data-fallback="💃">
         </div>
-        <p class="mic-help">막대가 <b>빨간 선</b>을 넘으면 촛불이 꺼져요</p>
-      </div>
-      <div class="btn-row">
-        <button id="micBtn" class="btn-retro">🎤 후~ 불어서 끄기</button>
-        <button id="relightBtn" class="btn-retro" hidden>🔥 다시 켜기</button>
-      </div>
-      <div class="wish" id="wishMsg" hidden>
-        <p class="blink">✨ 소원을 빌었나요? ✨</p>
-        <p>당신의 소원은 이미 이루어지고 있어요.<br>내가 옆에 있잖아요 ㅎㅎ</p>
-      </div>
-    </div>
-  </section>
-
-  <div class="rainbow-bar thin" aria-hidden="true"></div>
-
-  <!-- ═══ D-DAY ═══ -->
-  <section class="panel" id="ddayPanel">
-    <h2 class="panel-title">💾 우리의 기록 💾</h2>
-    <div class="panel-body">
-      <table class="dday-table">
-        <tbody>
-          <tr>
-            <th scope="row">처음 만난 날</th>
-            <td id="metDateCell">-</td>
-          </tr>
-          <tr>
-            <th scope="row">함께한 날</th>
-            <td><b class="big-num" id="daysTogether">0</b> 일째</td>
-          </tr>
-          <tr>
-            <th scope="row">다음 100일</th>
-            <td id="next100">-</td>
-          </tr>
-          <tr>
-            <th scope="row">생일까지</th>
-            <td id="bdayCountdown">-</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="ticker" id="secondsTogether">함께한 시간을 세는 중...</div>
-    </div>
-  </section>
-
-  <div class="rainbow-bar thin" aria-hidden="true"></div>
-
-  <!-- ═══ 편지 ═══ -->
-  <section class="panel" id="letterPanel">
-    <h2 class="panel-title">💌 편지가 도착했습니다 💌</h2>
-    <div class="panel-body">
-      <div class="envelope-wrap">
-        <button class="envelope" id="envelope" aria-expanded="false" aria-controls="letterBody">
-          <span class="env-flap"></span>
-          <span class="env-body"></span>
-          <span class="env-seal">♥</span>
-          <span class="env-label blink">클릭!</span>
-        </button>
-      </div>
-      <div class="letter" id="letterBody" hidden>
-        <div class="letter-paper">
-          <p class="letter-to">To. <span class="to-name">○○</span>에게</p>
-          <pre class="letter-text" id="letterText"></pre>
-          <p class="letter-from">From. <span id="fromName">나</span> ✍</p>
+        <img class="asset banner" src="assets/memes/under-construction-sign.gif" alt="공사중" data-fallback="🚧 UNDER CONSTRUCTION 🚧">
+        <div class="strip-row">
+          <img class="asset icon" src="assets/heart-3.gif" alt="" data-fallback="💖">
+          <div class="counter-box">
+            <span class="counter-label">방문자수</span>
+            <span class="counter" id="visitorCounter">0000000</span>
+          </div>
+          <img class="asset icon" src="assets/star-glowing.svg" alt="" data-fallback="⭐">
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <div class="rainbow-bar thin" aria-hidden="true"></div>
-
-  <!-- ═══ 코드로 보는 내 마음 ═══ -->
-  <section class="panel" id="codePanel">
-    <h2 class="panel-title">👨‍💻 코드로 보는 내 마음 👩‍💻</h2>
-    <div class="panel-body">
-      <div class="code-window">
-        <div class="code-titlebar">
-          <span class="code-dots"><i></i><i></i><i></i></span>
-          <span class="code-filename">my_heart.js</span>
+    <!-- ══ 2. 케이크 ══ -->
+    <section class="page" data-title="케이크">
+      <div class="page-inner panel">
+        <h2 class="panel-title">🎂 촛불을 꺼주세요 🎂</h2>
+        <div class="panel-body">
+          <div class="cake" id="cake">
+            <div class="candles" id="candles"></div>
+            <div class="cake-top"></div>
+            <div class="cake-mid"></div>
+            <div class="cake-bot"></div>
+            <div class="plate"></div>
+          </div>
+          <p class="candle-legend" id="candleLegend"></p>
+          <p class="cake-hint" id="cakeHint">촛불을 손가락으로 톡톡 두드려서 꺼보세요!</p>
+          <div class="mic-meter" id="micMeter" hidden>
+            <div class="mic-track">
+              <div class="mic-bar" id="micBar"></div>
+              <div class="mic-mark" id="micMark"></div>
+            </div>
+            <p class="mic-help">막대가 <b>빨간 선</b>을 넘으면 촛불이 꺼져요</p>
+          </div>
+          <div class="btn-row">
+            <button id="micBtn" class="btn-retro">🎤 후~ 불어서 끄기</button>
+            <button id="relightBtn" class="btn-retro" hidden>🔥 다시 켜기</button>
+          </div>
+          <div class="wish" id="wishMsg" hidden>
+            <p class="blink">✨ 소원을 빌었나요? ✨</p>
+            <p>당신의 소원은 이미 이루어지고 있어요.<br>내가 옆에 있잖아요 ㅎㅎ</p>
+          </div>
         </div>
-        <pre class="code-body"><code id="codeBlock"></code></pre>
       </div>
-      <p class="code-tip">💡 F12 눌러서 콘솔도 열어보세요</p>
-      <button class="btn-retro" id="runCodeBtn">▶ 실행하기</button>
-      <div class="code-output" id="codeOutput" hidden></div>
+    </section>
+
+    <!-- ══ 3. D-DAY ══ -->
+    <section class="page" data-title="우리의 기록">
+      <div class="page-inner panel">
+        <h2 class="panel-title">💾 우리의 기록 💾</h2>
+        <div class="panel-body">
+          <table class="dday-table">
+            <tbody>
+              <tr><th scope="row">처음 만난 날</th><td id="metDateCell">-</td></tr>
+              <tr><th scope="row">함께한 날</th><td><b class="big-num" id="daysTogether">0</b> 일째</td></tr>
+              <tr><th scope="row">다음 100일</th><td id="next100">-</td></tr>
+              <tr><th scope="row">생일까지</th><td id="bdayCountdown">-</td></tr>
+            </tbody>
+          </table>
+          <div class="ticker" id="secondsTogether">함께한 시간을 세는 중...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ 4. 편지 ══ -->
+    <section class="page" data-title="편지">
+      <div class="page-inner panel">
+        <h2 class="panel-title">💌 편지가 도착했습니다 💌</h2>
+        <div class="panel-body">
+          <div class="envelope-wrap">
+            <button class="envelope" id="envelope" aria-expanded="false" aria-controls="letterBody">
+              <span class="env-flap"></span>
+              <span class="env-body"></span>
+              <span class="env-seal">♥</span>
+              <span class="env-label blink">클릭!</span>
+            </button>
+          </div>
+          <div class="letter" id="letterBody" hidden>
+            <div class="letter-paper">
+              <p class="letter-to">To. <span class="to-name">○○</span>에게</p>
+              <pre class="letter-text" id="letterText"></pre>
+              <p class="letter-from">From. <span id="fromName">나</span> ✍</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ 5. 코드 ══ -->
+    <section class="page" data-title="코드">
+      <div class="page-inner panel">
+        <h2 class="panel-title">👨‍💻 코드로 보는 내 마음 👩‍💻</h2>
+        <div class="panel-body">
+          <div class="code-window">
+            <div class="code-titlebar">
+              <span class="code-dots"><i></i><i></i><i></i></span>
+              <span class="code-filename">my_heart.js</span>
+            </div>
+            <pre class="code-body"><code id="codeBlock"></code></pre>
+          </div>
+          <button class="btn-retro" id="runCodeBtn">▶ 실행하기</button>
+          <div class="code-output" id="codeOutput" hidden></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ 6. 짤 대잔치 ══ -->
+    <section class="page" data-title="짤 대잔치">
+      <div class="page-inner panel" id="memePanel">
+        <h2 class="panel-title">🔥 짤 대잔치 🔥</h2>
+        <div class="panel-body">
+          <p class="meme-intro">하나씩 눌러보세요 👇</p>
+          <div class="meme-wall" id="memeWall"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ 7. 갤러리 + 마무리 ══ -->
+    <section class="page" data-title="갤러리">
+      <div class="page-inner panel">
+        <h2 class="panel-title">🖼 추억의 갤러리 🖼</h2>
+        <div class="panel-body">
+          <div class="gallery" id="gallery"></div>
+          <div class="outro">
+            <p class="webring">☜ 이전 홈피 ｜ <b>웹링</b> ｜ 다음 홈피 ☞</p>
+            <img class="asset quill" src="assets/memes/guestbook-quill-ink.gif" alt="" data-fallback="✒️">
+            <p class="footer-copy">Copyright ⓒ 1999-2026 내 마음 All Rights Reserved.<br>
+              본 홈페이지의 모든 사랑은 <span id="toNameFooter">○○</span>님께 귀속됩니다.</p>
+            <p class="footer-credit">이미지 출처: <a href="assets/CREDITS.md">Wikimedia Commons</a> ·
+              <a href="assets/memes/CREDITS.md">GifCities</a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 페이지 넘기기 -->
+  <nav class="pager-nav">
+    <button class="nav-btn" id="prevBtn" aria-label="이전 페이지">☜ 이전</button>
+    <div class="nav-mid">
+      <div class="nav-dots" id="navDots"></div>
+      <div class="nav-count"><span id="pageNow">1</span> / <span id="pageTotal">7</span></div>
     </div>
-  </section>
-
-  <div class="rainbow-bar thin" aria-hidden="true"></div>
-
-  <!-- ═══ 짤 대잔치 ═══ -->
-  <section class="panel" id="memePanel">
-    <h2 class="panel-title">🔥 짤 대잔치 🔥</h2>
-    <div class="panel-body">
-      <p class="meme-intro">1990년대 지오시티즈에서 건져온 진짜 옛날 짤들.<br>하나씩 눌러보세요 👇</p>
-      <div class="meme-wall" id="memeWall"></div>
-    </div>
-  </section>
-
-  <div class="rainbow-bar thin" aria-hidden="true"></div>
-
-  <!-- ═══ 짤 갤러리 ═══ -->
-  <section class="panel" id="galleryPanel">
-    <h2 class="panel-title">🖼 추억의 갤러리 🖼</h2>
-    <div class="panel-body">
-      <div class="gallery" id="gallery"></div>
-      <p class="gallery-note">※ 사진은 <code>assets/</code> 폴더에 넣고 <code>script.js</code>의 <code>CONFIG.photos</code>를 수정하세요</p>
-    </div>
-  </section>
-
-  <!-- 푸터 -->
-  <footer class="footer">
-    <div class="rainbow-bar" aria-hidden="true"></div>
-    <p class="webring">☜ 이전 홈피 ｜ <b>웹링</b> ｜ 다음 홈피 ☞</p>
-    <p class="footer-mail">
-      <img class="asset quill" src="assets/memes/guestbook-quill-ink.gif" alt="" data-fallback="✒️"><br>
-      방명록에 글 남겨주세요 (없음)
-    </p>
-    <p class="footer-copy">Copyright ⓒ 1999-2026 내 마음 All Rights Reserved.<br>
-      본 홈페이지의 모든 사랑은 <span id="toNameFooter">○○</span>님께 귀속됩니다.</p>
-    <p class="footer-credit">이미지 출처: <a href="assets/CREDITS.md">Wikimedia Commons (CC0 / CC BY / CC BY-SA)</a></p>
-    <button class="btn-retro small" id="bgmBtn">🔊 BGM 끄기</button>
-  </footer>
-</main>
+    <button class="nav-btn" id="nextBtn" aria-label="다음 페이지">다음 ☞</button>
+    <button class="nav-bgm btn-retro small" id="bgmBtn">🔊</button>
+  </nav>
+</div>
 
 <!-- 이펙트 레이어 -->
 <div class="fx-layer" id="fxLayer" aria-hidden="true"></div>
