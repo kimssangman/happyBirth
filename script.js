@@ -533,6 +533,7 @@ function typeLetter() {
   if (reduceMotion) {
     target.textContent = text;
     typing = false;
+    followTyping(target);
     return;
   }
   let i = 0;
@@ -541,6 +542,7 @@ function typeLetter() {
     i++;
     const chunk = text.slice(0, i);
     target.innerHTML = escapeHtml(chunk) + caret;
+    followTyping(target);
     if (i < text.length) {
       const ch = text[i - 1];
       const delay = ch === "\n" ? 220 : ch === "." || ch === "," ? 180 : 55;
@@ -551,6 +553,15 @@ function typeLetter() {
     }
   };
   step();
+}
+
+/* 글자가 찍히면서 화면 아래로 넘어가면 그만큼 따라 내려갑니다.
+   항상 스크롤하지 않고 "화면 밖으로 나갈 때만" 움직여서 덜 산만합니다. */
+function followTyping(el) {
+  const bottom = el.getBoundingClientRect().bottom;
+  const limit = window.innerHeight - 90; // 아래에 여유를 두고 멈춤
+  const over = bottom - limit;
+  if (over > 0) window.scrollBy(0, over);
 }
 
 const escapeHtml = (s) =>
@@ -609,6 +620,7 @@ function runCode() {
   const push = () => {
     out.textContent += (i ? "\n" : "") + lines[i];
     i++;
+    followTyping(out);
     if (i < lines.length) setTimeout(push, 320);
     else {
       confettiRain(30);
@@ -709,6 +721,8 @@ function buildGallery() {
 let audioCtx = null;
 let bgmTimer = null;
 let bgmPlaying = false;
+let bgmNodes = [];   // 예약해 둔 BGM 오실레이터 (즉시 정지용)
+let fanfareTimer = null;
 
 const NOTE_BASE = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 };
 function freqOf(note) {
@@ -726,7 +740,9 @@ const MELODY = [
   ["f5", 0.5], ["f5", 0.5], ["e5", 1], ["c5", 1], ["d5", 1], ["c5", 2.5],
 ];
 
-function beep(freq, start, dur, type = "square", gain = 0.06) {
+/* collect 를 주면 bgmNodes 에 담아 두었다가 stopBgm 에서 즉시 끌 수 있습니다.
+   이걸 안 하면 예약만 취소되고 이미 예약된 소리는 끝까지 울립니다. */
+function beep(freq, start, dur, type = "square", gain = 0.06, collect = false) {
   const osc = audioCtx.createOscillator();
   const g = audioCtx.createGain();
   osc.type = type;
@@ -737,13 +753,21 @@ function beep(freq, start, dur, type = "square", gain = 0.06) {
   osc.connect(g).connect(audioCtx.destination);
   osc.start(start);
   osc.stop(start + dur);
+
+  if (collect) {
+    bgmNodes.push(osc);
+    osc.onended = () => {
+      const i = bgmNodes.indexOf(osc);
+      if (i >= 0) bgmNodes.splice(i, 1);
+    };
+  }
 }
 
 function scheduleMelody() {
   const beat = 0.42;
   let t = audioCtx.currentTime + 0.15;
   MELODY.forEach(([n, len]) => {
-    beep(freqOf(n), t, len * beat * 0.92);
+    beep(freqOf(n), t, len * beat * 0.92, "square", 0.06, true);
     t += len * beat;
   });
   return (t - audioCtx.currentTime) * 1000 + 700;
@@ -766,13 +790,26 @@ function startBgm() {
 function stopBgm() {
   bgmPlaying = false;
   clearTimeout(bgmTimer);
+  // 타이머만 지우면 이미 예약된 음(최대 13초치)이 계속 울립니다.
+  // 예약해 둔 오실레이터를 직접 멈춰야 실제로 소리가 끊깁니다.
+  bgmNodes.forEach((osc) => {
+    try { osc.stop(); } catch (e) { /* 이미 끝난 노드 */ }
+  });
+  bgmNodes = [];
   $("#bgmBtn").textContent = "🔇";
 }
 
 function playFanfare() {
   if (!audioCtx) return;
+  // BGM 위에 그대로 얹으면 소리가 뭉치므로 잠깐 멈췄다가 끝나고 되돌립니다
+  const wasOn = bgmPlaying;
+  if (wasOn) stopBgm();
+
   const t = audioCtx.currentTime;
   ["c5", "e5", "g5", "c6"].forEach((n, i) => beep(freqOf(n), t + i * 0.09, 0.3, "triangle", 0.1));
+
+  clearTimeout(fanfareTimer);
+  if (wasOn) fanfareTimer = setTimeout(startBgm, 1400);
 }
 
 /* ───────── 사진 크게 보기 ───────── */
