@@ -118,10 +118,7 @@ function setupAssetFallbacks() {
 
 /* ───────── 가짜 방문자 카운터 ───────── */
 function visitorCounter() {
-  const KEY = "hb_visits";
-  let n = Number(localStorage.getItem(KEY) || 0) + 1;
-  localStorage.setItem(KEY, String(n));
-  const total = 1004000 + n * 7; // 천사 숫자 1004 ㅎㅎ
+  const total = 10041004; // 천사 숫자 1004 두 번 ㅎㅎ
   const el = $("#visitorCounter");
   let shown = Math.max(0, total - 40);
   const tick = setInterval(() => {
@@ -130,7 +127,7 @@ function visitorCounter() {
       shown = total;
       clearInterval(tick);
     }
-    el.textContent = String(shown).padStart(7, "0");
+    el.textContent = String(shown).padStart(8, "0");
   }, 60);
 }
 
